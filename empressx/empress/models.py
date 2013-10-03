@@ -20,7 +20,13 @@ class Application(models.Model):
 
 class Server(models.Model):
 
+    host_name = models.CharField(unique=True)
     is_active = models.BooleanField(default=True)
+    category = models.CharField(choices=(
+        ('WebSvr', 'web'),
+        ('AppSvr', 'app'),
+    ))
+    url = models.URLField(unique=True)
 
 
 class Environment(models.Model):
