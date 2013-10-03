@@ -32,7 +32,6 @@ def rel_post_save_handler(sender, instance, created, **kwargs):
     if created:
         # 拉起app服务进程(也需要根据最新代码重新init)
         start_serve_app(instance.server, instance.application)
-
     else:
         # 根据is_active情况，停止app服务进程
         stop_serve_app(instance.server, instance.application)

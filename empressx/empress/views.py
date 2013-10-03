@@ -2,6 +2,13 @@
 import json
 from django.http import HttpResponse
 
+
+def get_websvr_list(request):
+    '''获取所有的webserver列表, 用于webserver刷新路由配置时使用'''
+    server_list = Server.objects.filter(category='WebSvr').values_list('host_name', flat=True)
+	return HttpResponse(json.dumps(server_list))
+
+
 def get_server_app_list(request):
     '''获取每台app_svr负载的app清单, 用于webserver刷新路由配置时使用'''
     server_list = []
