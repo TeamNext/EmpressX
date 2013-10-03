@@ -9,6 +9,7 @@ class Application(models.Model):
     svn_path = models.CharField()
     project_path = models.CharField()
     wsgi_handler = models.CharField()
+    requirements = models.TextField()
 
     def __unicode__(self):
         if self.alias:
