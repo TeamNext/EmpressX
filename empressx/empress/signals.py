@@ -7,6 +7,7 @@ django Signals
 -------
 """
 import requests
+import xmlrpclib
 
 from django.db.models import signals
 from django.dispatch import receiver
@@ -46,43 +47,47 @@ def mission_post_save_handler(sender, instance, created, **kwargs):
     if created:
         assert instance.command in dict(EmpressMission.COMMAND_CHOICE)
 
-        #执行一次女王的任务
-        if instance.command=='appsvr_init_app':
-            url = '%sretinue/appsvr_init_app/' % instance.retinue.url
-            data = {
-                'svn_path': instance.app.svn_path,
-                'project_path' = instance.app.project_path,
-                'wsgi_handler' = instance.app.wsgi_handler,
-            }
+        retinue_api = xmlrpclib.ServerProxy(instance.retinue.url, allow_none=True, use_datetime=True)
+        data = {'mission_id':mission.id}
 
-        elif instance.command=='appsvr_start_serve_app':
-            url = '%sretinue/appsvr_start_serve_app/' % instance.retinue.url
-            data = {
-                'svn_path': instance.app.svn_path,
-                'project_path' : instance.app.project_path,
-                'wsgi_handler' : instance.app.wsgi_handler,
-            }
+        try:
+            #执行一次女王的任务
+            if instance.command=='appsvr_init_app':
+                data.update({
+                    'svn_path': instance.app.svn_path,
+                    'project_path' = instance.app.project_path,
+                    'wsgi_handler' = instance.app.wsgi_handler,
+                })
+                retinue_api.appsvr_init_app(**data)
 
-        elif instance.command=='appsvr_stop_serve_app':
-            url = '%sretinue/appsvr_stop_serve_app/' % instance.retinue.url
-            data = {
-                'project_path' : instance.app.project_path,
-                'wsgi_handler' : instance.app.wsgi_handler,
-            }
-        elif instance.command=='websvr_reload':
-            # 获取每台app_svr负载的app清单
-            server_list = []
-            for appsvr in Server.objects.filter(category='AppSvr', is_active=True):
-                data = {'host_name': appsvr.host_name, 'host_apps':[]}
-                for rel in Relationship.objects.filter(server=appsvr, is_active=True):
-                    data['host_apps'].append(rel.Application.name) #可能需要给wsgi_handler
-                server_list.append(data)
+            elif instance.command=='appsvr_start_serve_app':
+                data.update({
+                    'svn_path': instance.app.svn_path,
+                    'project_path' : instance.app.project_path,
+                    'wsgi_handler' : instance.app.wsgi_handler,
+                })
+                retinue_api.appsvr_start_serve_app(**data)
 
-            url = '%sretinue/websvr_reload/' % instance.retinue.url
-            data = {
-                'server_list': json.dumps(server_list)
-            }
+            elif instance.command=='appsvr_stop_serve_app':
+                data.update({
+                    'project_path' : instance.app.project_path,
+                    'wsgi_handler' : instance.app.wsgi_handler,
+                })
+                retinue_api.appsvr_stop_serve_app(**data)
 
-        data['mission_id'] = mission.id
-        response = requests.post(url, data=data)
-        assert httplib.OK == response.status_code
+            elif instance.command=='websvr_reload':
+                # 获取每台app_svr负载的app清单
+                svr_list = []
+                for appsvr in Server.objects.filter(category='AppSvr', is_active=True):
+                    svr_data = {'host_name': appsvr.host_name, 'host_apps':[]}
+                    for rel in Relationship.objects.filter(server=appsvr, is_active=True):
+                        svr_data['host_apps'].append(rel.Application.name) #可能需要给wsgi_handler
+                    svr_list.append(svr_data)
+
+                data.update{
+                    'server_list': json.dumps(svr_list)
+                }
+                retinue_api.websvr_reload(**data)
+        except xmlrpclib.Fault as err::
+            return (False, u"调用错误: %s" % err.faultString)
+

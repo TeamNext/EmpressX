@@ -1,11 +1,28 @@
 # Create your views here.
 import json
+from SimpleXMLRPCServer import SimpleXMLRPCDispatcher
 from django.http import HttpResponse
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 from empress.models import EmpressMission
 
+dispatcher = SimpleXMLRPCDispatcher()
 
-def mission_report(request, mission_id, is_complete, data):
+
+@csrf_exempt
+def xmlrpc_handler(request):
+    '''用于随从服务器回调的xmlrpc服务'''
+    if request.method == "POST":
+        # logger.debug('%s\n\n\n', request.body)
+        response = HttpResponse(mimetype="application/xml")
+        response.write(dispatcher._marshaled_dispatch(request.raw_post_data))
+        response['Content-length'] = str(len(response.content))
+        return response
+    else:
+        raise Http404(u'只支持POST请求')
+
+
+def mission_report(mission_id, is_complete, data):
     try:
         mission = EmpressMission.objects.get(id=mission_id)
     except:
@@ -27,3 +44,4 @@ def mission_report(request, mission_id, is_complete, data):
         else:
             pass # todo: 误报
 
+dispatcher.register_function(mission_report, 'mission_report')
