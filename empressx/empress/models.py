@@ -9,7 +9,7 @@ class Application(models.Model):
     svn_path = models.CharField()
     project_path = models.CharField()
     wsgi_handler = models.CharField()
-    requirements = models.TextField()
+    # requirements = models.TextField() # requirements改存到app文件中
 
     def __unicode__(self):
         if self.alias:
