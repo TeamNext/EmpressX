@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from django.db import models
 from django.utils import timezone
 
@@ -54,3 +56,26 @@ class Relationship(models.Model):
         return unicode("[{}] {}@{}".format(state,
                                            self.application,
                                            self.server))
+
+
+class EmpressMission(models.Model):
+    '''女皇对随从的命令记录'''
+    COMMAND_CHOICE = (
+        ('appsvr_init_app', u'App服务器初始化App环境'),
+        ('appsvr_start_serve_app', u'App服务器启动一个App'),
+        ('appsvr_stop_serve_app', u'App服务器停止一个App'),
+        ('websvr_reload', u'Web服务器刷新路由配置'),
+    )
+
+    retinue = models.ForeignKey(Server)  # 执行命令的随从
+    app = models.ForeignKey(Application)
+    command = models.CharField(choices=COMMAND_CHOICE)
+    status = models.CharField(choices=(
+        ('sent', u'命令已下达，等待随从报告'),
+        ('failed', u'随从报告任务失败'),
+        ('complete', u'随从报告任务成功'),
+    ), default='sent')
+    callback = models.TextField(null=True) # 随从返回报告的内容
+
+    sent_time = models.DateTimeField(default=timezone.now())
+    callback_time = models.DateTimeField(null=True)

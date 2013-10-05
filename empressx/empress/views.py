@@ -1,20 +1,29 @@
 # Create your views here.
 import json
 from django.http import HttpResponse
+from django.utils import timezone
+from empress.models import EmpressMission
 
 
-def get_websvr_list(request):
-    '''获取所有的webserver列表, 用于webserver刷新路由配置时使用'''
-    server_list = Server.objects.filter(category='WebSvr', is_active=True).values_list('host_name', flat=True)
-	return HttpResponse(json.dumps(server_list))
+def mission_report(request, mission_id, is_complete, data):
+    try:
+        mission = EmpressMission.objects.get(id=mission_id)
+    except:
+        pass #todo
+    else:
+        if mission.status == 'sent':
+            if mission.command in ('appsvr_start_serve_app', 'appsvr_stop_serve_app'):
+                # 刷新路由配置
+                for websvr in Server.objects.filter(category='WebSvr', is_active=True):
+                    EmpressMission(retinue=websvr,app=mission.app,command='websvr_reload').save()
+            else:
+                pass # 其他任务完成后暂无操作
 
+            # 更新任务信息
+            mission.status = 'complete' if is_complete else 'failed'
+            mission.callback_time = timezone.now()
+            mission.callback = data
+            mission.save()
+        else:
+            pass # todo: 误报
 
-def get_server_app_list(request):
-    '''获取每台app_svr负载的app清单, 用于webserver刷新路由配置时使用'''
-    server_list = []
-    for appsvr in Server.objects.filter(category='AppSvr', is_active=True):
-        data = {'host_name': appsvr.host_name, 'host_apps':[]}
-        for rel in Relationship.objects.filter(server=appsvr, is_active=True):
-    		data['host_apps'].append(rel.Application.name) #可能需要给wsgi_handler
-    	server_list.append(data)
-	return HttpResponse(json.dumps(server_list))

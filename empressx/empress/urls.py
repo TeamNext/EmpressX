@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 
 from django.conf.urls.defaults import include, patterns, url
 from django.http import HttpResponseRedirect
@@ -6,7 +6,6 @@ from django.core.urlresolvers import reverse
 
 
 urlpatterns = patterns('empress.views',
-    url(r'^get_websvr_list/$', 'get_websvr_list'),
-    url(r'^get_server_app_list/$', 'get_server_app_list'),
+	url(r'^callback/$', 'mission_report'),    # 随从执行命令后的回调接口, todo: 换成xmlrpc方式
 )
 
