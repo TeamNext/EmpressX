@@ -9,8 +9,11 @@ class Application(models.Model):
     name = models.CharField(unique=True)
     alias = models.CharField(blank=True, default='')
     svn_path = models.CharField()
-    project_path = models.CharField()
-    wsgi_handler = models.CharField()
+    project_path = models.CharField(blank=True, default='') #${retinue_app_dir}/${app_code}/${project_path}(只需填相对路径)
+    wsgi_handler = models.CharField(choices=(
+        ('django.core.handlers.wsgi:WSGIHandler()', 'django<=1.3'),
+        ('django.core.wsgi:get_wsgi_application()', 'django>=1.4'),
+    ))
     # requirements = models.TextField() # requirements改存到app文件中
 
     def __unicode__(self):
@@ -20,15 +23,22 @@ class Application(models.Model):
         else:
             return self.name
 
+    def output_app_config(self):
+        return  {
+                    'svn_path': self.svn_path,
+                    'project_path' : self.project_path,
+                    'wsgi_handler' : self.wsgi_handler,
+                }
+
 
 class Server(models.Model):
-
-    host_name = models.CharField(unique=True)
+    '''根据心跳动态调整is_active， 然后动态切换relationship'''
+    ip = models.CharField(unique=True)
     is_active = models.BooleanField(default=True)
     category = models.CharField(choices=(
         ('WebSvr', 'web'),
         ('AppSvr', 'app'),
-    ))
+    ))  #todo: 换成role-group
     url = models.URLField(unique=True)
 
 
@@ -40,7 +50,7 @@ class Environment(models.Model):
 
 
 class Relationship(models.Model):
-
+    '''App部署在某台机器的关系'''
     application = models.ForeignKey(Application)
     server = models.ForeignKey(Server)
     is_active = models.BooleanField(default=True)

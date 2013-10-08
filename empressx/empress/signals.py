@@ -53,33 +53,22 @@ def mission_post_save_handler(sender, instance, created, **kwargs):
         try:
             #执行一次女王的任务
             if instance.command=='appsvr_init_app':
-                data.update({
-                    'svn_path': instance.app.svn_path,
-                    'project_path' = instance.app.project_path,
-                    'wsgi_handler' = instance.app.wsgi_handler,
-                })
+                data.update(instance.app.output_app_config())
                 retinue_api.appsvr_init_app(**data)
 
             elif instance.command=='appsvr_start_serve_app':
-                data.update({
-                    'svn_path': instance.app.svn_path,
-                    'project_path' : instance.app.project_path,
-                    'wsgi_handler' : instance.app.wsgi_handler,
-                })
+                data.update(instance.app.output_app_config())
                 retinue_api.appsvr_start_serve_app(**data)
 
             elif instance.command=='appsvr_stop_serve_app':
-                data.update({
-                    'project_path' : instance.app.project_path,
-                    'wsgi_handler' : instance.app.wsgi_handler,
-                })
+                data.update(instance.app.output_app_config())
                 retinue_api.appsvr_stop_serve_app(**data)
 
             elif instance.command=='websvr_reload':
                 # 获取每台app_svr负载的app清单
                 svr_list = []
                 for appsvr in Server.objects.filter(category='AppSvr', is_active=True):
-                    svr_data = {'host_name': appsvr.host_name, 'host_apps':[]}
+                    svr_data = {'ip': appsvr.ip, 'host_apps':[]}
                     for rel in Relationship.objects.filter(server=appsvr, is_active=True):
                         svr_data['host_apps'].append(rel.Application.name) #可能需要给wsgi_handler
                     svr_list.append(svr_data)
