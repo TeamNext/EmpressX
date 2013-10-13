@@ -20,3 +20,11 @@ def xmlrpc_handler(request, service=None):
         return response
     else:
         return HttpResponseNotAllowed(['POST'])
+
+
+from empressx.retinue.methods import app, web
+dispatcher.register_function(app.serve, 'app.serve')
+dispatcher.register_function(app.unserve, 'app.unserve')
+dispatcher.register_function(app.update, 'app.update')
+dispatcher.register_function(web.serve, 'web.serve')
+dispatcher.register_function(web.unserve, 'web.unserve')
