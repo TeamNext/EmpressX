@@ -10,6 +10,13 @@ from empressx.retinue.utils import localcommand, virtualenvcommand
 
 
 @task
+def delete_config(app_name):
+    conf_home = settings.RETINUE_VASSAL_HOME
+    localcommand("rm -f %(conf_home)s/%(app_name)s.ini" % locals())
+    return app_name
+
+
+@task
 def provide_virtualenv(app_name):
     client = xmlrpclib.Server(settings.EMPRESS_SERVICE_URL)
     app_info = client.app_info(app_name)
@@ -66,7 +73,7 @@ def install_requirements(app_name):
 
     virtualenvcommand("""
 workon %(virtualenv)s
-cd %s
+cd %(project_home)s
 if [ -f %(requirements)s ]
 then
     pip install --upgrade -r %(requirements)s
@@ -113,7 +120,4 @@ def serve(app_name, uuid):
 
 @task(ignore_result=True)
 def unserve(app_name, uuid):
-    chain(provide_virtualenv.s(app_name),
-          pull_source_code.s(),
-          install_requirements.s(),
-          render_vassal_config.s()).apply_async()
+    chain(delete_config.s(app_name)).apply_async()
