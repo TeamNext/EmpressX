@@ -1,10 +1,12 @@
+# -*- coding:utf-8 -*-
+
 # Create your views here.
 import json
 from SimpleXMLRPCServer import SimpleXMLRPCDispatcher
 from django.http import HttpResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from empress.models import EmpressMission, Application, Server
+from empressx.empress.models import EmpressMission, Application, Server
 
 dispatcher = SimpleXMLRPCDispatcher()
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# from empress.models import EmpressMission, Application, Server
+# from empressx.empress.models import EmpressMission, Application, Server
 
 # def output_app_info(app):
 #     return  {
