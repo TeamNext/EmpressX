@@ -23,10 +23,21 @@ class Application(models.Model):
         else:
             return self.name
 
-    def output_app_config(self):
+    def output_app_info(self):
+        rels = Relationship.objects.filter(application=self, is_active=True)
+        hosts = [rel.server.ip for rel in rels]
+        envs = {env.key:env.value for env in Environment.objects.filter(application=self)}
         return  {
-                    'svn_path': self.svn_path,
+                    'app_name': self.name,
+                    'envs': envs,
+                    'hosts': hosts,
                     'project_path' : self.project_path,
+                    'vcs':{
+                        'path': self.svn_path, # svn
+                        'username': None, # optional
+                        'password': None, # optional
+                    },
+                    #'requirements': 'requirements.txt', (default)
                     'wsgi_handler' : self.wsgi_handler,
                 }
 
@@ -72,11 +83,14 @@ class EmpressMission(models.Model):
     '''女皇对随从的命令记录'''
     COMMAND_CHOICE = (
         ('appsvr_init_app', u'App服务器初始化App环境'),
-        ('appsvr_start_serve_app', u'App服务器启动一个App'),
-        ('appsvr_stop_serve_app', u'App服务器停止一个App'),
-        ('websvr_reload', u'Web服务器刷新路由配置'),
+        ('app.serve', u'App服务器启动一个App'),
+        ('app.unserve', u'App服务器停止一个App'),
+        ('app.update', u'App服务器初始化App环境'),
+        ('web.serve', u'Web服务器路由一个app'),
+        ('web.unserve', u'Web服务器停止路由一个app'),
     )
 
+    uuid = models.CharField(max_length=64, unique=True, editable=False)
     retinue = models.ForeignKey(Server)  # 执行命令的随从
     app = models.ForeignKey(Application)
     command = models.CharField(choices=COMMAND_CHOICE)
