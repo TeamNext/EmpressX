@@ -31,7 +31,7 @@ def provide_virtualenv(app_name):
     # mkdir project_home if not exist
     localcommand('mkdir -p %s' % project_home)
 
-    virtualenvcommand('workon %s && cd %s && setvirtualenvproject $VIRTUAL_ENV `pwd`' % (virtualenv, project_home))
+    # virtualenvcommand('workon %s && cd %s && setvirtualenvproject $VIRTUAL_ENV `pwd`' % (virtualenv, project_home))
 
     return app_name
 
