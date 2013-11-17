@@ -37,8 +37,8 @@ class Application(models.Model):
         ('Subversion', 'Subversion'),
     ), default='Subversion')
     vcs_path = models.CharField(max_length=255, default='', blank=True)
-    vcs_username = models.CharField(max_length=255, default='', blank=True)
-    vcs_password = models.CharField(max_length=255, default='', blank=True)
+    vcs_username = models.CharField(max_length=255, default='svn_t', blank=True)
+    vcs_password = models.CharField(max_length=255, default='71A1Wt05Yj', blank=True)
 
     project_path = models.CharField(max_length=255, default='', blank=True)
     requirements = models.CharField(max_length=255, default='', blank=True)
