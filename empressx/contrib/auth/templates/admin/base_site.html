@@ -1,0 +1,12 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} | Hosting 管理{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">Hosting 管理</h1>
+{% endblock %}
+
+{% block userlinks %}
+    <a href="{% url 'accounts:logout' %}">{% trans 'Log out' %}</a>
+{% endblock %}

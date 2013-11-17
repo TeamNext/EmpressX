@@ -1,0 +1,18 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<div id="content-main">
+    <p>您暂时不能访问该站点，这是以下原因造成的：</p>
+    <ul>
+    {% if user.is_anonymous %}
+        <li>您尚未<a href="{% url 'accounts:login' %}"><strong>{% trans 'Log in' %}</strong></a>。</li>
+    {% else %}{% if user.is_active %}
+        <li>该帐号没有权限。</li>
+    {% else %}
+        <li>{% trans 'This account is inactive.' %}</li>
+    {% endif %}{% endif %}
+    </ul>
+    <p>如有需要，请联系站点管理员为您解决上述问题。</p>
+</div>
+{% endblock %}
