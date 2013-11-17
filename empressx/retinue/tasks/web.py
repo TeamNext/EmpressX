@@ -26,7 +26,7 @@ def reload_nginx(target):
 def _reload_nginx():
     last_reload_request = cache.get('web_nginx_last_reload_request')
     now = time.mktime(timezone.now().timetuple())
-    if now - last_reload_request >= 30:
+    if not last_reload_request or now - last_reload_request >= 30:
         nginx_path = settings.ROUTER_NGINX_PATH
         conf = settings.ROUTER_NGINX_CONF if settings.ROUTER_NGINX_CONF else 'conf/nginx.conf'
         localcommand("%(nginx_path)s -s reload -c %(conf)s" % locals())
