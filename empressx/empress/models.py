@@ -89,7 +89,7 @@ class Server(models.Model):
     applications = models.ManyToManyField(Application, through='HostingShip')
 
     class Meta:
-        unique_together = ('ip_address', 'port')
+        unique_together = ('ip_address', 'port', 'category')
 
     def __unicode__(self):
         return unicode("[{}] {}:{}".format(self.category,
