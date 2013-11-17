@@ -102,7 +102,7 @@ class HostingShip(models.Model):
     application = models.ForeignKey(Application)
     server = models.ForeignKey(Server)
     is_active = models.BooleanField(default=True)
-    date_created = models.DateTimeField(default=timezone.now())
+    date_created = models.DateTimeField(default=timezone.now)
     date_deprecated = models.DateTimeField(null=True, blank=True)
 
     def __unicode__(self):
@@ -132,7 +132,7 @@ class Task(models.Model):
     ), default='PENDING')
     data = models.TextField(default='')
     ex_data = models.TextField(default='')
-    date_created = models.DateTimeField(default=timezone.now())
+    date_created = models.DateTimeField(default=timezone.now)
     date_archived = models.DateTimeField(null=True, blank=True)
 
     def __unicode__(self):
@@ -159,5 +159,5 @@ class EmpressMission(models.Model):
     ), default='PENDING')
     data = models.TextField(default='')
     ex_data = models.TextField(default='')
-    date_created = models.DateTimeField(default=timezone.now())
+    date_created = models.DateTimeField(default=timezone.now)
     date_archived = models.DateTimeField(null=True, blank=True)
