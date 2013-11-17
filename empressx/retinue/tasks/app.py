@@ -202,7 +202,7 @@ def render_nginx_config(target):
 @task_tracker
 def reload_nginx(target):
     cache.set('nginx_last_reload_request', time.mktime(timezone.now().timetuple()))
-    _reload_nginx.apply_async(countdown=30)
+    _reload_nginx.apply_async(countdown=5)
     return target
 
 
@@ -210,7 +210,7 @@ def reload_nginx(target):
 def _reload_nginx():
     last_reload_request = cache.get('nginx_last_reload_request')
     now = time.mktime(timezone.now().timetuple())
-    if not last_reload_request or now - last_reload_request >= 30:
+    if not last_reload_request or now - last_reload_request >= 5:
         nginx_path = settings.RETINUE_NGINX_PATH
         conf = settings.RETINUE_NGINX_CONF if settings.RETINUE_NGINX_CONF else 'conf/nginx.conf'
         localcommand("%(nginx_path)s -s reload -c %(conf)s" % locals())
