@@ -1,86 +1,80 @@
 # -*- coding: utf-8 -*-
-
-"""
-signal的处理
--------
-"""
-
-import requests
-import xmlrpclib
-from uuid import uuid3, NAMESPACE_OID
-
 from django.db.models import signals
 from django.dispatch import receiver
 
-from empressx.empress.models import Application, Relationship, Server, Environment, EmpressMission
-
-#tips: 所有后续需要改写webserver路由配置的操作，都会由celery异步触发
-#tips: 所有对随从服务的请求都会触发一个事件记录，并会等待随从服务的完成回调，然后做后续操作
-
-#todo: Environment的传递
-#todo: 异常处理
-#todo: 将来新增一台Server也需要触发一系列操作
+from empressx.empress import tasks
+from empressx.empress.models import Application, HostingShip, Server, Task, EmpressMission
 
 
 @receiver(signals.post_save, sender=Application)
 def app_post_save_handler(sender, instance, created, **kwargs):
     if created:
-        # 通知所有App服务器，初始化app运行
-        for appsvr in Server.objects.filter(category='AppSvr', is_active=True):
-            EmpressMission(retinue=appsvr,app=instance,
-                            command='app.update',
-                            uuid = uuid3(NAMESPACE_OID, '1')).save()
-        
+        if not instance.vcs_path:
+            vcs_path = 'svn://10.130.131.232:8080/apps/{}'.format(instance.name)
+            Application.objects.filter(pk=instance.pk) \
+                               .update(vcs_path=vcs_path)
 
-@receiver(signals.post_save, sender=Relationship)
-def rel_post_save_handler(sender, instance, created, **kwargs):
+        qs = Server.objects.filter(category='app')
+        server_count = qs.count()
+        if server_count in (1, 2):
+            for server in qs:
+                HostingShip(application=instance,
+                            server=server).save()
+        elif server_count > 2:
+            server_dict = {}
+            for server in qs:
+                server_dict[server] = server.applications.count()
+            hosting_counts = set(server_dict.values())
+            min_values = []
+            if len(hosting_counts) == 1:
+                min_values.append(hosting_counts.pop())
+            else:
+                min_value = min(hosting_counts)
+                min_values.append(min_value)
+                hosting_counts.remove(min_value)
+                min_value = min(hosting_counts)
+                min_values.append(min_value)
+
+            times = 0
+            for server, hosting_count in server_dict.iteritems():
+                if hosting_count in min_values:
+                    HostingShip(application=instance,
+                                server=server).save()
+                    times += 1
+                    if times >= 2:
+                        break
+
+
+@receiver(signals.post_save, sender=Server)
+def server_post_save_handler(sender, instance, created, **kwargs):
     if created:
-        if instance.is_active:
-            # 拉起app服务进程(也需要根据最新代码重新init)
-            EmpressMission(retinue=instance.server,app=instance.application,
-                            command='app.serve',
-                            uuid = uuid3(NAMESPACE_OID, '1')).save()
-    else:
-        # 根据is_active情况，停止app服务进程
-        if not instance.is_active:
-            EmpressMission(retinue=instance.server,app=instance.application,
-                            command='app.unserve',
-                            uuid = uuid3(NAMESPACE_OID, '1')).save()
+        # TODO
+        pass
+
+
+@receiver(signals.post_save, sender=Task)
+def task_post_save_handler(sender, instance, created, **kwargs):
+    if created:
+        try:
+            app = Application.objects.get(name=instance.app_name)
+        except Application.DoesNotExist:
+            app = Application(name=instance.app_name)
+            app.save()
+
+        for app_retinue in app.server_set.all():
+            EmpressMission(task=instance,
+                           action='app.serve',
+                           retinue=app_retinue).save()
+
+        for web_retinue in Server.objects.filter(category='web'):
+            EmpressMission(task=instance,
+                           action='web.serve',
+                           retinue=web_retinue).save()
 
 
 @receiver(signals.post_save, sender=EmpressMission)
 def mission_post_save_handler(sender, instance, created, **kwargs):
     if created:
-        assert instance.command in dict(EmpressMission.COMMAND_CHOICE)
-
-        retinue_api = xmlrpclib.ServerProxy(instance.retinue.url, allow_none=True, use_datetime=True)
-        data = {'app_name': instance.app.name ,'uuid':instance.uuid}
-
-        try:
-            #执行一次女王的任务
-            if instance.command=='app.update':
-                #retinue_api.app.update(**data)
-                print 'haha!'
-
-            elif instance.command=='app.serve':
-                retinue_api.app.serve(**data)
-
-            elif instance.command=='app.unserve':
-                retinue_api.app.unserve(**data)
-
-            elif instance.command=='web.serve':
-                retinue_api.web.serve(**data)
-
-                # # 获取每台app_svr负载的app清单
-                # svr_list = []
-                # for appsvr in Server.objects.filter(category='AppSvr', is_active=True):
-                #     svr_data = {'ip': appsvr.ip, 'host_apps':[]}
-                #     for rel in Relationship.objects.filter(server=appsvr, is_active=True):
-                #         svr_data['host_apps'].append(rel.Application.name) #可能需要给wsgi_handler
-                #     svr_list.append(svr_data)
-
-                # data.update{
-                #     'server_list': json.dumps(svr_list)
-                # }
-        except xmlrpclib.Fault as err:
-            return (False, u"调用错误: %s" % err.faultString)
+        tasks.xmlrpc_client.apply_async(args=[instance.id])
+    else:
+        pass

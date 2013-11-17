@@ -9,13 +9,14 @@ def localcommand(command):
                          shell=True,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT)
-    return_code = p.wait()
+    stdout, stderr = p.communicate()
+    return_code = p.returncode
 
     if return_code:
         raise CommandExecutionError("(return code %d) the outputs is:\n%s"
-                                    % (return_code, p.stdout.read()))
+                                    % (return_code, stdout))
     else:
-        return p.stdout.read()
+        return stdout
 
 
 def virtualenvcommand(command):
