@@ -100,6 +100,7 @@ def pull_source_code(target):
     cmd = """
 if [ -d %(project_home)s/.svn ]
 then
+    cd %(project_home)s
     svn cleanup --username=%(vcs_username)s --password=%(vcs_password)s
     svn update --username=%(vcs_username)s --password=%(vcs_password)s
 else
