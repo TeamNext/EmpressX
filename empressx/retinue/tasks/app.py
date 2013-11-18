@@ -154,6 +154,7 @@ workon %(virtualenv)s
 cd %(project_home)s
 python manage.py syncdb --noinput
 python manage.py migrate --noinput
+python manage.py createcachetable django_cache > /dev/null 2>&1 || echo
     """ % locals())
 
     return target
