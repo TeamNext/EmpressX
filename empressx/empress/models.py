@@ -40,6 +40,9 @@ class Application(models.Model):
     vcs_username = models.CharField(max_length=255, default='svn_t', blank=True)
     vcs_password = models.CharField(max_length=255, default='71A1Wt05Yj', blank=True)
 
+    min_worker_num = models.PositiveSmallIntegerField(default=1)
+    max_worker_num = models.PositiveSmallIntegerField(default=4)
+
     project_path = models.CharField(max_length=255, default='', blank=True)
     requirements = models.CharField(max_length=255, default='', blank=True)
     wsgi_handler = models.CharField(max_length=255, choices=(

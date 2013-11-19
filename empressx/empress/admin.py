@@ -7,7 +7,7 @@ from empressx.empress.models import Application, HostingShip, Server, Task, Empr
 
 class ApplicationAdmin(admin.ModelAdmin):
 
-    list_display = ['name', 'alias', 'is_active']
+    list_display = ['name', 'alias', 'is_active', 'min_worker_num', 'max_worker_num']
 
 
 class TaskAdmin(admin.ModelAdmin):

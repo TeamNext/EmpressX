@@ -52,6 +52,8 @@ def app_info(app_name):
                 'username': app.vcs_username,
                 'password': app.vcs_password,
             },
+            'min_worker_num': app.min_worker_num,
+            'max_worker_num': app.max_worker_num,
             'project_path': app.project_path,
             'requirements': app.requirements,
             'wsgi_handler': app.wsgi_handler,
