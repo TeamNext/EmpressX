@@ -88,6 +88,7 @@ class Server(models.Model):
         ('web', 'WebSvr'),
         ('app', 'AppSvr'),
     ))
+    affinity = models.PositiveSmallIntegerField(null=True, blank=True)
     last_heartbeat = models.DateTimeField(null=True, blank=True)
     applications = models.ManyToManyField(Application, through='HostingShip')
 

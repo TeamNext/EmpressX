@@ -21,25 +21,15 @@ def app_post_save_handler(sender, instance, created, **kwargs):
                 HostingShip(application=instance,
                             server=server).save()
         elif server_count > 2:
-            server_dict = {}
-            for server in qs:
-                server_dict[server] = server.applications.count()
-            hosting_counts = set(server_dict.values())
-            min_values = []
-            if len(hosting_counts) == 1:
-                min_values.append(hosting_counts.pop())
-            else:
-                min_value = min(hosting_counts)
-                min_values.append(min_value)
-                hosting_counts.remove(min_value)
-                min_value = min(hosting_counts)
-                min_values.append(min_value)
+            servers = sorted(qs.all(), key=lambda server:server.applications.count())
 
             times = 0
-            for server, hosting_count in server_dict.iteritems():
-                if hosting_count in min_values:
+            affinity = None
+            for server in servers:
+                if affinity is None or server.affinity is None or affinity != server.affinity:
                     HostingShip(application=instance,
                                 server=server).save()
+                    affinity = server.affinity
                     times += 1
                     if times >= 2:
                         break
