@@ -168,6 +168,7 @@ def render_uwsgi_config(target):
 
     context = copy(app_info)
     context.update({
+        'virtualenv': app_info.get('virtualenv', settings.DEFAULT_VIRTUALENV_NAME),
         'RETINUE_HOME': settings.RETINUE_HOME,
         'RETINUE_WORKON_HOME': settings.RETINUE_WORKON_HOME,
         'RETINUE_APP_HOME': settings.RETINUE_APP_HOME,
