@@ -67,7 +67,7 @@ def delete_config(app_name):
 def provide_virtualenv(target):
     app_info, uuid = target
     app_name = app_info['app_name']
-    virtualenv = app_info.get('virtualenv', app_name)
+    virtualenv = app_info.get('virtualenv', settings.DEFAULT_VIRTUALENV_NAME)
 
     # mkvirtualenv if not exist
     if virtualenv not in virtualenvcommand('lsvirtualenv -b').splitlines():
@@ -121,7 +121,7 @@ fi
 def install_requirements(target):
     app_info, uuid = target
     app_name = app_info['app_name']
-    virtualenv = app_info.get('virtualenv', app_name)
+    virtualenv = app_info.get('virtualenv', settings.DEFAULT_VIRTUALENV_NAME)
 
     if virtualenv == app_name:
         requirements = app_info.get('requirements', 'requirements.txt')
@@ -145,7 +145,7 @@ fi
 def syncdb_and_migrate(target):
     app_info, uuid = target
     app_name = app_info['app_name']
-    virtualenv = app_info.get('virtualenv', app_name)
+    virtualenv = app_info.get('virtualenv', settings.DEFAULT_VIRTUALENV_NAME)
 
     project_home = '%s/%s' % (settings.RETINUE_APP_HOME, app_name)
 
@@ -218,6 +218,78 @@ def _reload_nginx():
         localcommand("%(nginx_path)s -s reload -c %(conf)s" % locals())
 
 
+@task
+@task_tracker
+def render_supervisor_config(target):
+    app_info, uuid = target
+    app_name = app_info['app_name']
+    virtualenv = app_info.get('virtualenv', settings.DEFAULT_VIRTUALENV_NAME)
+
+    context = copy(app_info)
+
+    client = xmlrpclib.Server(settings.EMPRESS_SERVICE_URL)
+    if virtualenv == settings.DEFAULT_VIRTUALENV_NAME:
+        virtualenv_info = client.private.virtualenv_info(settings.RETINUE_ID)
+    else:
+        virtualenv_info = client.private.virtualenv_info(settings.RETINUE_ID, virtualenv)
+
+    context.update({
+        'virtualenv': virtualenv,
+        'apps': virtualenv_info,
+        'RETINUE_HOME': settings.RETINUE_HOME,
+        'RETINUE_WORKON_HOME': settings.RETINUE_WORKON_HOME,
+        'RETINUE_APP_HOME': settings.RETINUE_APP_HOME,
+    })
+
+    rendered = render_to_string('empressx/retinue/supervisord.conf', context)
+
+    etc_home = os.path.join(settings.RETINUE_WORKON_HOME, '%s/etc' % virtualenv)
+
+    # mkdir etc_home if not exist
+    if not os.path.exists(etc_home):
+        os.makedirs(etc_home)
+
+    with open('%s/%s.conf' % (etc_home, app_name), 'w') as f:
+        f.write(rendered)
+
+    return target
+
+
+@task
+@task_tracker
+def reload_supervisor(target):
+    app_info, uuid = target
+    app_name = app_info['app_name']
+    virtualenv = app_info.get('virtualenv', settings.DEFAULT_VIRTUALENV_NAME)
+    cache.set('%s_supervisor_last_reload_request' % app_name,
+              time.mktime(timezone.now().timetuple()))
+    _reload_supervisor.apply_async(args=[target], countdown=30)
+    return target
+
+
+@task(ignore_result=True)
+def _reload_supervisor(target):
+    app_info, uuid = target
+    app_name = app_info['app_name']
+    virtualenv = app_info.get('virtualenv', settings.DEFAULT_VIRTUALENV_NAME)
+    virtualenv_home = '%s/%s' % (settings.RETINUE_WORKON_HOME, virtualenv)
+    retinue_home = settings.RETINUE_HOME
+
+    last_reload_request = cache.get('%s_supervisor_last_reload_request' % app_name)
+    now = time.mktime(timezone.now().timetuple())
+    if not last_reload_request or now - last_reload_request >= 30:
+        virtualenvcommand("""
+workon %(virtualenv)s
+cd %(virtualenv_home)s
+if [ -e %(retinue_home)s/var/run/%(app_name)s_supervisord.pid ]
+then
+    supervisorctl -c etc/%(app_name)s.conf reload
+else
+    supervisord -c etc/%(app_name)s.conf
+fi
+    """ % locals())
+
+
 @task(ignore_result=True)
 def reserve(app_name, uuid):
     chain(provide_virtualenv.s(app_name),
@@ -230,16 +302,30 @@ def serve(app_name, uuid):
     client = xmlrpclib.Server(settings.EMPRESS_SERVICE_URL)
     app_info = client.private.app_info(app_name)
 
-    chain(
-        provide_virtualenv.s((app_info, uuid)),
-        pull_source_code.s(),
-        install_requirements.s(),
-        syncdb_and_migrate.s(),
-        render_uwsgi_config.s(),
-        render_nginx_config.s(),
-        reload_nginx.s(),
-        end.s(),
-    ).apply_async()
+    if app_info.get('use_celery'):
+        chain(
+            provide_virtualenv.s((app_info, uuid)),
+            pull_source_code.s(),
+            install_requirements.s(),
+            syncdb_and_migrate.s(),
+            render_uwsgi_config.s(),
+            render_nginx_config.s(),
+            reload_nginx.s(),
+            render_supervisor_config.s(),
+            reload_supervisor.s(),
+            end.s(),
+        ).apply_async()
+    else:
+        chain(
+            provide_virtualenv.s((app_info, uuid)),
+            pull_source_code.s(),
+            install_requirements.s(),
+            syncdb_and_migrate.s(),
+            render_uwsgi_config.s(),
+            render_nginx_config.s(),
+            reload_nginx.s(),
+            end.s(),
+        ).apply_async()
 
 
 @task(ignore_result=True)

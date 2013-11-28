@@ -7,11 +7,19 @@ from empressx.empress.models import Application, HostingShip, Server, Task, Empr
 
 class ApplicationAdmin(admin.ModelAdmin):
 
-    list_display = ['name', 'alias', 'is_active', 'min_worker_num', 'max_worker_num']
-    list_filter = ['is_active']
-    search_fields = ['name', 'alias']
+    list_display = ['name', 'is_active', 'min_worker_num', 'max_worker_num', 'virtualenv', 'use_celery', 'use_celery_beat', 'max_celery_worker_num']
+    list_filter = ['is_active', 'use_celery', 'use_celery_beat']
+    search_fields = ['name', 'virtualenv']
 
     ordering = ['name']
+
+    fieldsets = (
+        (None, {'fields': ['name', 'alias', 'is_active']}),
+        ('Basic', {'fields': ['virtualenv', 'project_path', 'requirements', 'wsgi_handler']}),
+        ('Worker', {'fields': ['min_worker_num', 'max_worker_num']}),
+        ('VCS', {'fields': ['vcs', 'vcs_path', 'vcs_username', 'vcs_password']}),
+        ('Celery', {'fields': ['use_celery', 'use_celery_beat', 'max_celery_worker_num', 'celery_stop_wait_secs']}),
+    )
 
 
 class TaskAdmin(admin.ModelAdmin):

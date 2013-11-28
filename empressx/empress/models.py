@@ -50,19 +50,19 @@ class Application(models.Model):
         ('django.core.wsgi:get_wsgi_application()', 'django>=1.4'),
     ), default='django.core.handlers.wsgi:WSGIHandler()')
 
+    use_celery = models.BooleanField(default=False)
+    use_celery_beat = models.BooleanField(default=False)
+    celery_stop_wait_secs = models.PositiveIntegerField(default=60)
+
+    min_celery_worker_num = models.PositiveSmallIntegerField(default=1)
+    max_celery_worker_num = models.PositiveSmallIntegerField(default=4)
+
     def __unicode__(self):
         if self.alias:
             return unicode("{}({})".format(self.alias,
                                            self.name))
         else:
             return self.name
-
-    @property
-    def virtualenv_name(self):
-        try:
-            return self.virtualenv.name
-        except:
-            return getattr(settings, 'DEFAULT_VIRTUALENV_NAME', 'bkapps')
 
 
 class EnvironmentVariable(models.Model):

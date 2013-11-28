@@ -38,9 +38,8 @@ def app_info(app_name):
     except Application.DoesNotExist:
         return {}
     else:
-        return {
+        ret = {
             'app_name': app.name,
-            'virtualenv': app.virtualenv_name,
             'hosts': ['%s:%d' % (server.ip_address, server.port) for server in app.server_set.all()],
             'envs': {
                 'DJANGO_CONF_MODULE': 'conf.testing',
@@ -57,7 +56,34 @@ def app_info(app_name):
             'project_path': app.project_path,
             'requirements': app.requirements,
             'wsgi_handler': app.wsgi_handler,
+            'use_celery': app.use_celery,
         }
+
+        if app.virtualenv:
+            ret['virtualenv'] = app.virtualenv
+
+        return ret
+
+
+def virtualenv_info(retinue_id, virtualenv_name=None):
+    try:
+        server = Server.objects.get(pk=retinue_id)
+    except Server.DoesNotExist:
+        return []
+    else:
+        if virtualenv_name:
+            qs = server.applications.filter(virtualenv__name=virtualenv_name,
+                                            use_celery=True)
+        else:
+            qs = server.applications.filter(virtualenv__isnull=True,
+                                            use_celery=True)
+
+        return map(lambda x: {'name': x.name,
+                              'use_celery_beat': x.use_celery_beat,
+                              'celery_stop_wait_secs': x.celery_stop_wait_secs,
+                              'min_celery_worker_num': x.min_celery_worker_num,
+                              'max_celery_worker_num': x.max_celery_worker_num},
+                   qs)
 
 
 def heartbeat(category):
