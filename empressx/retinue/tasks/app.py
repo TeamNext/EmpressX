@@ -228,15 +228,8 @@ def render_supervisor_config(target):
 
     context = copy(app_info)
 
-    client = xmlrpclib.Server(settings.EMPRESS_SERVICE_URL)
-    if virtualenv == settings.DEFAULT_VIRTUALENV_NAME:
-        virtualenv_info = client.private.virtualenv_info(settings.RETINUE_ID)
-    else:
-        virtualenv_info = client.private.virtualenv_info(settings.RETINUE_ID, virtualenv)
-
     context.update({
         'virtualenv': virtualenv,
-        'apps': virtualenv_info,
         'RETINUE_HOME': settings.RETINUE_HOME,
         'RETINUE_WORKON_HOME': settings.RETINUE_WORKON_HOME,
         'RETINUE_APP_HOME': settings.RETINUE_APP_HOME,
@@ -303,7 +296,7 @@ def serve(app_name, uuid):
     client = xmlrpclib.Server(settings.EMPRESS_SERVICE_URL)
     app_info = client.private.app_info(app_name)
 
-    if app_info.get('use_celery'):
+    if app_info.get('celery', {}).get('enabled'):
         chain(
             provide_virtualenv.s((app_info, uuid)),
             pull_source_code.s(),

@@ -56,7 +56,12 @@ def app_info(app_name):
             'project_path': app.project_path,
             'requirements': app.requirements,
             'wsgi_handler': app.wsgi_handler,
-            'use_celery': app.use_celery,
+            'celery': {
+                'enabled': app.use_celery,
+                'beat_enabled': app.use_celery_beat,
+                'stop_wait_secs': app.celery_stop_wait_secs,
+                'max_worker_num': app.max_celery_worker_num,
+            },
         }
 
         if app.virtualenv:
