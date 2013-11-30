@@ -48,8 +48,9 @@ def generate_config(target):
 
     rendered = render_to_string('empressx/retinue/upstream.conf', app_info)
 
-    with open(os.path.join(settings.RETINUE_NGINX_UPSTREAM_HOME, '%s.conf' % app_name), 'w') as f:
-        f.write(rendered)
+    if rendered.strip():
+        with open(os.path.join(settings.RETINUE_NGINX_UPSTREAM_HOME, '%s.conf' % app_name), 'w') as f:
+            f.write(rendered)
 
     return target
 
