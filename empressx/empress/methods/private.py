@@ -1,3 +1,5 @@
+import os
+
 from django.utils import timezone
 from empressx import states
 from empressx.empress import tasks
@@ -41,10 +43,6 @@ def app_info(app_name):
         ret = {
             'app_name': app.name,
             'hosts': ['%s:%d' % (server.ip_address, server.port) for server in app.server_set.all()],
-            'envs': {
-                'DJANGO_CONF_MODULE': 'conf.testing',
-                'DJANGO_SETTINGS_MODULE': 'settings',
-            },
             'vcs': {
                 'name': app.vcs,
                 'path': app.vcs_path,
@@ -66,6 +64,15 @@ def app_info(app_name):
 
         if app.virtualenv:
             ret['virtualenv'] = app.virtualenv
+
+        conf_module = os.environ.get('DJANGO_CONF_MODULE', 'conf.testing')
+        envs = {
+            'DJANGO_CONF_MODULE': conf_module,
+            'DJANGO_SETTINGS_MODULE': 'settings',
+        }
+        if conf_module == 'conf.production':
+            envs['CELERY_BROKER'] = 'amqp://ai_logging:ai_logging@10.185.8.141:5672/ai_logging'
+        ret['envs'] = envs
 
         return ret
 
