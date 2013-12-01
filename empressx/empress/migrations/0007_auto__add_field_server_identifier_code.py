@@ -8,13 +8,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Removing unique constraint on 'Server', fields ['ip_address', 'port', 'category', 'identifier_code']
-        db.delete_unique(u'empress_server', ['ip_address', 'port', 'category', 'identifier_code'])
+        # Adding field 'Server.identifier_code'
+        db.add_column(u'empress_server', 'identifier_code',
+                      self.gf('django.db.models.fields.CharField')(default='6b848cbf-09e4-44e3-a82b-cebdefde01cc', max_length=255),
+                      keep_default=False)
 
 
     def backwards(self, orm):
-        # Adding unique constraint on 'Server', fields ['ip_address', 'port', 'category', 'identifier_code']
-        db.create_unique(u'empress_server', ['ip_address', 'port', 'category', 'identifier_code'])
+        # Deleting field 'Server.identifier_code'
+        db.delete_column(u'empress_server', 'identifier_code')
 
 
     models = {
@@ -47,7 +49,7 @@ class Migration(SchemaMigration):
             'date_archived': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'date_created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'ex_data': ('django.db.models.fields.TextField', [], {'default': "''"}),
-            'id': ('django.db.models.fields.CharField', [], {'default': "'fc8550d3-d869-40ff-9b60-401bca84c18d'", 'max_length': '255', 'primary_key': 'True'}),
+            'id': ('django.db.models.fields.CharField', [], {'default': "'ecd356fc-a1f9-47dd-aa90-3db3ee978c83'", 'max_length': '255', 'primary_key': 'True'}),
             'retinue': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['empress.Server']"}),
             'state': ('django.db.models.fields.CharField', [], {'default': "'PENDING'", 'max_length': '255'}),
             'task': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['empress.Task']"})
@@ -74,7 +76,7 @@ class Migration(SchemaMigration):
             'applications': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['empress.Application']", 'through': u"orm['empress.HostingShip']", 'symmetrical': 'False'}),
             'category': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'identifier_code': ('django.db.models.fields.CharField', [], {'default': "'316c3a2f-5348-4b97-88a8-bb4bf2c7f64a'", 'max_length': '255'}),
+            'identifier_code': ('django.db.models.fields.CharField', [], {'default': "'f3d2eb8a-aa22-4922-b6a5-f57b2bfcc018'", 'max_length': '255'}),
             'ip_address': ('django.db.models.fields.GenericIPAddressField', [], {'max_length': '39'}),
             'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'last_heartbeat': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
@@ -88,7 +90,7 @@ class Migration(SchemaMigration):
             'date_archived': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'date_created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'ex_data': ('django.db.models.fields.TextField', [], {'default': "''"}),
-            'id': ('django.db.models.fields.CharField', [], {'default': "'85806dcd-8f72-47ca-a772-c327c2b4cb0d'", 'max_length': '255', 'primary_key': 'True'}),
+            'id': ('django.db.models.fields.CharField', [], {'default': "'43f30f5b-e714-48cb-8d00-4fa70d43a521'", 'max_length': '255', 'primary_key': 'True'}),
             'state': ('django.db.models.fields.CharField', [], {'default': "'PENDING'", 'max_length': '255'})
         },
         u'empress.virtualenv': {
