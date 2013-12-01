@@ -23,5 +23,5 @@ from empressx.empress.methods import public, private
 dispatcher.register_function(public.serve, 'serve')
 dispatcher.register_function(public.status, 'status')
 dispatcher.register_function(private.app_info, 'private.app_info')
-# dispatcher.register_function(private.virtualenv_info, 'private.virtualenv_info')
 dispatcher.register_function(private.callback, 'private.callback')
+dispatcher.register_function(private.heartbeat, 'private.heartbeat')

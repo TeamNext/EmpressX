@@ -40,7 +40,7 @@ class EmpressMissionAdmin(admin.ModelAdmin):
 
 class ServerAdmin(admin.ModelAdmin):
 
-    list_display = ['ip_address', 'port', 'category', 'affinity', 'is_active', 'last_heartbeat']
+    list_display = ['ip_address', 'port', 'category', 'affinity', 'identifier_code', 'is_active', 'last_heartbeat']
     ordering = ['ip_address']
     list_filter = ['category']
 

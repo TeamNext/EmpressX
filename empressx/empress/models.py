@@ -92,8 +92,12 @@ class Server(models.Model):
     last_heartbeat = models.DateTimeField(null=True, blank=True)
     applications = models.ManyToManyField(Application, through='HostingShip')
 
+    identifier_code = models.CharField(max_length=255, default=get_uuid)
+
     class Meta:
-        unique_together = ('ip_address', 'port', 'category')
+        unique_together = (
+            ('ip_address', 'port', 'category'),
+        )
 
     def __unicode__(self):
         return unicode("[{}] {}:{}".format(self.category,

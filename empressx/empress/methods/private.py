@@ -98,5 +98,6 @@ def virtualenv_info(retinue_id, virtualenv_name=None):
                    qs)
 
 
-def heartbeat(category):
-    pass
+def heartbeat(identifier_code):
+    Server.objects.filter(identifier_code=identifier_code) \
+                  .update(last_heartbeat=timezone.now())
