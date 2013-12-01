@@ -102,7 +102,7 @@ if [ -d %(project_home)s/.svn ]
 then
     cd %(project_home)s
     svn cleanup --username=%(vcs_username)s --password=%(vcs_password)s
-    svn update --username=%(vcs_username)s --password=%(vcs_password)s
+    svn update --non-interactive --username=%(vcs_username)s --password=%(vcs_password)s
 else
     cd %(project_home)s
     svn checkout %(vcs_path)s/ . --non-interactive --no-auth-cache --username=%(vcs_username)s --password=%(vcs_password)s
