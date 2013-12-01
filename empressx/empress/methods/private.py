@@ -99,5 +99,6 @@ def virtualenv_info(retinue_id, virtualenv_name=None):
 
 
 def heartbeat(identifier_code):
-    Server.objects.filter(identifier_code=identifier_code) \
-                  .update(last_heartbeat=timezone.now())
+    rows = Server.objects.filter(identifier_code=identifier_code) \
+                         .update(last_heartbeat=timezone.now())
+    return True if rows else False
