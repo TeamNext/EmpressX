@@ -9,7 +9,7 @@ class ApplicationAdmin(admin.ModelAdmin):
 
     list_display = ['name', 'is_active', 'min_worker_num', 'max_worker_num', 'virtualenv', 'use_celery', 'use_celery_beat', 'max_celery_worker_num']
     list_filter = ['is_active', 'use_celery', 'use_celery_beat']
-    search_fields = ['name', 'virtualenv']
+    search_fields = ['name']
 
     ordering = ['name']
 
