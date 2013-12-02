@@ -45,21 +45,36 @@ def server_post_save_handler(sender, instance, created, **kwargs):
 @receiver(signals.post_save, sender=Task)
 def task_post_save_handler(sender, instance, created, **kwargs):
     if created:
-        try:
-            app = Application.objects.get(name=instance.app_name)
-        except Application.DoesNotExist:
-            app = Application(name=instance.app_name)
-            app.save()
+        if instance.action == 'serve':
+            try:
+                app = Application.objects.get(name=instance.app_name)
+            except Application.DoesNotExist:
+                app = Application(name=instance.app_name)
+                app.save()
 
-        for app_retinue in app.server_set.all():
-            EmpressMission(task=instance,
-                           action='app.serve',
-                           retinue=app_retinue).save()
+            for app_retinue in app.server_set.all():
+                EmpressMission(task=instance,
+                               action='app.serve',
+                               retinue=app_retinue).save()
 
-        for web_retinue in Server.objects.filter(category='web'):
-            EmpressMission(task=instance,
-                           action='web.serve',
-                           retinue=web_retinue).save()
+            for web_retinue in Server.objects.filter(category='web'):
+                EmpressMission(task=instance,
+                               action='web.serve',
+                               retinue=web_retinue).save()
+        elif instance.action == 'unserve':
+            try:
+                app = Application.objects.get(name=instance.app_name)
+            except Application.DoesNotExist:
+                pass
+            else:
+                for web_retinue in Server.objects.filter(category='web'):
+                    EmpressMission(task=instance,
+                                   action='web.unserve',
+                                   retinue=web_retinue).save()
+
+                for app_retinue in app.server_set.all():
+                    pass
+
 
 
 @receiver(signals.post_save, sender=EmpressMission)

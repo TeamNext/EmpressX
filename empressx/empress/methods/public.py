@@ -9,7 +9,9 @@ def serve(app_name):
 
 
 def unserve(app_name):
-    pass
+    task = Task(app_name=app_name, action='unserve')
+    task.save()
+    return True, task.id
 
 
 def status(task_id):

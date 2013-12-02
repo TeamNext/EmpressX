@@ -34,10 +34,13 @@ def _reload_nginx():
 
 @task
 @task_tracker
-def delete_config(app_name):
+def delete_config(target):
+    app_info, uuid = target
+    app_name = app_info['app_name']
+
     conf_home = settings.RETINUE_NGINX_UPSTREAM_HOME
     localcommand("rm -f %(conf_home)s/%(app_name)s.conf" % locals())
-    return app_name
+    return target
 
 
 @task
@@ -82,4 +85,11 @@ def serve(app_name, uuid):
 
 @task(ignore_result=True)
 def unserve(app_name, uuid):
-    pass
+    client = xmlrpclib.Server(settings.EMPRESS_SERVICE_URL)
+    app_info = client.private.app_info(app_name)
+
+    chain(
+        delete_config.s((app_info, uuid)),
+        reload_nginx.s(),
+        end.s()
+    ).apply_async()

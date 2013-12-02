@@ -24,8 +24,8 @@ class ApplicationAdmin(admin.ModelAdmin):
 
 class TaskAdmin(admin.ModelAdmin):
 
-    list_display = ('app_name', 'state', 'date_created', 'date_archived')
-    list_filter = ['state']
+    list_display = ('app_name', 'action', 'state', 'date_created', 'date_archived')
+    list_filter = ['action', 'state']
     ordering = ['-date_created']
     readonly_fields = ['date_created', 'date_archived']
     search_fields = ['app_name']
