@@ -114,6 +114,7 @@ if [ "${DJANGO_CONF_MODULE}" = "conf.testing" ]
 then
     fp_root_dir="/data/BKTest_App_FilePool"
 elif [ "${DJANGO_CONF_MODULE}" = "conf.production" ]
+then
     fp_root_dir="/data/BK_App_FilePool"
 fi
 
