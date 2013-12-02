@@ -56,10 +56,24 @@ def end(target):
 
 @task
 @task_tracker
-def delete_config(app_name):
+def delete_uwsgi_config(target):
+    app_info, uuid = target
+    app_name = app_info['app_name']
+
     conf_home = settings.RETINUE_VASSAL_HOME
     localcommand("rm -f %(conf_home)s/%(app_name)s.ini" % locals())
-    return app_name
+    return target
+
+
+@task
+@task_tracker
+def delete_nginx_config(target):
+    app_info, uuid = target
+    app_name = app_info['app_name']
+
+    conf_home = settings.RETINUE_NGINX_STATICFILE_HOME
+    localcommand("rm -f %(conf_home)s/%(app_name)s.ini" % locals())
+    return target
 
 
 @task
@@ -345,4 +359,12 @@ def serve(app_name, uuid):
 
 @task(ignore_result=True)
 def unserve(app_name, uuid):
-    chain(delete_config.s(app_name)).apply_async()
+    client = xmlrpclib.Server(settings.EMPRESS_SERVICE_URL)
+    app_info = client.private.app_info(app_name)
+
+    chain(
+        delete_uwsgi_config.s((app_info, uuid)),
+        delete_nginx_config.s(),
+        reload_nginx.s(),
+        end.s(),
+    ).apply_async()

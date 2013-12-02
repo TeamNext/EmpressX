@@ -73,8 +73,9 @@ def task_post_save_handler(sender, instance, created, **kwargs):
                                    retinue=web_retinue).save()
 
                 for app_retinue in app.server_set.all():
-                    pass
-
+                    EmpressMission(task=instance,
+                                   action='app.unserve',
+                                   retinue=app_retinue).save()
 
 
 @receiver(signals.post_save, sender=EmpressMission)
