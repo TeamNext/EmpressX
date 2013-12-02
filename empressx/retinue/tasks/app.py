@@ -98,14 +98,34 @@ def pull_source_code(target):
     vcs_password = app_info.get('vcs', {}).get('password')
 
     cmd = """
+export LC_CTYPE=zh_CN.utf8
+
 if [ -d %(project_home)s/.svn ]
 then
     cd %(project_home)s
-    svn cleanup --username=%(vcs_username)s --password=%(vcs_password)s
+    svn cleanup --non-interactive --username=%(vcs_username)s --password=%(vcs_password)s
     svn update --non-interactive --username=%(vcs_username)s --password=%(vcs_password)s
 else
     cd %(project_home)s
     svn checkout %(vcs_path)s/ . --non-interactive --no-auth-cache --username=%(vcs_username)s --password=%(vcs_password)s
+fi
+
+if [ "${DJANGO_CONF_MODULE}" = "conf.testing" ]
+then
+    fp_root_dir="/data/BKTest_App_FilePool"
+elif [ "${DJANGO_CONF_MODULE}" = "conf.production" ]
+    fp_root_dir="/data/BK_App_FilePool"
+fi
+
+if [ ! -z "${fp_root_dir}" -a -d ${fp_root_dir} ]
+then
+    fpdir="${fp_root_dir}/%(app_name)s"
+    [ -d ${fpdir} ] || install -d ${fpdir} -m 1777
+    if [ $? -eq 0 ]
+    then
+        cd %(project_home)s
+        [ -L USERRES ] || ln -s ${fpdir} USERRES
+    fi
 fi
     """ % locals()
 
