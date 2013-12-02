@@ -21,6 +21,7 @@ def xmlrpc_handler(request):
 
 from empressx.empress.methods import public, private
 dispatcher.register_function(public.serve, 'serve')
+dispatcher.register_function(public.unserve, 'unserve')
 dispatcher.register_function(public.status, 'status')
 dispatcher.register_function(private.app_info, 'private.app_info')
 dispatcher.register_function(private.callback, 'private.callback')
