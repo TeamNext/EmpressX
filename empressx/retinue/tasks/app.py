@@ -312,10 +312,9 @@ workon %(virtualenv)s
 cd %(virtualenv_home)s
 if [ -e %(retinue_home)s/var/run/%(app_name)s_supervisord.pid ]
 then
-    supervisorctl -c etc/%(app_name)s.conf reload
-else
-    supervisord -c etc/%(app_name)s.conf
+    supervisorctl -c etc/%(app_name)s.conf shutdown
 fi
+supervisord -c etc/%(app_name)s.conf
     """ % locals())
 
 
