@@ -313,6 +313,15 @@ cd %(virtualenv_home)s
 if [ -e %(retinue_home)s/var/run/%(app_name)s_supervisord.pid ]
 then
     supervisorctl -c etc/%(app_name)s.conf shutdown
+    while true
+    do
+        if [ -e %(retinue_home)s/var/run/%(app_name)s_supervisord.sock ]
+        then
+            sleep 1
+        else
+            break
+        fi
+    done
 fi
 supervisord -c etc/%(app_name)s.conf
     """ % locals())
